@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
-import { Users, Plus, Search, Edit2, Trash2, Activity, Filter, FileText } from 'lucide-react';
+import { AuthContext } from '../contexts/AuthContext';
+import { Users, Plus, Search, Edit2, Trash2, Activity, Filter, FileText, X, Calendar } from 'lucide-react';
 
 const PatientsPage = () => {
+    const { user } = useContext(AuthContext);
+    const isDoctor = user?.role === 'Doctor';
     const [patients, setPatients] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -10,6 +13,11 @@ const PatientsPage = () => {
     const [modalMode, setModalMode] = useState('add');
     const [editingPatientId, setEditingPatientId] = useState(null);
     const [formData, setFormData] = useState({ nik: '', nama: '', kelamin: 'Laki-laki', tanggal_lahir: '', nomor_telepon: '', alamat: '' });
+
+    const [search, setSearch] = useState('');
+    const [patientRecords, setPatientRecords] = useState(null); // medical history for view
+    const [loadingRecords, setLoadingRecords] = useState(false);
+    const [viewingPatient, setViewingPatient] = useState(null);
 
     const fetchPatients = async () => {
         try {
@@ -25,6 +33,20 @@ const PatientsPage = () => {
     useEffect(() => {
         fetchPatients();
     }, []);
+
+    const fetchMedicalRecords = async (patient) => {
+        setViewingPatient(patient);
+        setLoadingRecords(true);
+        setPatientRecords(null);
+        try {
+            const res = await axios.get(`http://localhost:5000/api/medical-records/patient/${patient.id}`);
+            setPatientRecords(res.data.data);
+        } catch (err) {
+            setPatientRecords([]);
+        } finally {
+            setLoadingRecords(false);
+        }
+    };
 
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this patient record?')) {
@@ -88,17 +110,15 @@ const PatientsPage = () => {
                     <p className="text-slate-500 mt-2 font-medium">Manage and view clinic patient records</p>
                 </div>
                 <div className="flex space-x-3">
-                    <button className="bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800 px-5 py-3 rounded-xl flex items-center space-x-2 transition-all duration-300 shadow-sm">
-                        <Filter size={18} />
-                        <span className="font-semibold tracking-wide text-sm">Filter</span>
-                    </button>
-                    <button 
-                        onClick={openAddModal}
-                        className="group bg-gradient-to-r from-clinic-600 to-clinic-500 hover:from-clinic-700 hover:to-clinic-600 text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-all duration-300 shadow-lg shadow-clinic-500/30 hover:shadow-clinic-500/50 hover:-translate-y-0.5"
-                    >
-                        <Plus size={18} className="group-hover:rotate-90 transition-transform" />
-                        <span className="font-semibold tracking-wide text-sm">New Patient</span>
-                    </button>
+                    {!isDoctor && (
+                        <button
+                            onClick={openAddModal}
+                            className="group bg-gradient-to-r from-clinic-600 to-clinic-500 hover:from-clinic-700 hover:to-clinic-600 text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-all duration-300 shadow-lg shadow-clinic-500/30 hover:shadow-clinic-500/50 hover:-translate-y-0.5"
+                        >
+                            <Plus size={18} className="group-hover:rotate-90 transition-transform" />
+                            <span className="font-semibold tracking-wide text-sm">New Patient</span>
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -160,23 +180,34 @@ const PatientsPage = () => {
                                     <td className="px-8 py-5 font-medium text-slate-600">{patient.nomor_telepon || '-'}</td>
                                     <td className="px-8 py-5">
                                         <div className="flex space-x-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="View Medical Record">
-                                                <FileText size={18} />
-                                            </button>
-                                            <button 
-                                                onClick={() => openEditModal(patient)}
-                                                className="p-2 text-slate-400 hover:text-clinic-600 hover:bg-clinic-50 rounded-lg transition-colors" 
-                                                title="Edit"
-                                            >
-                                                <Edit2 size={18} />
-                                            </button>
-                                            <button 
-                                                onClick={() => handleDelete(patient.id)}
-                                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                title="Delete"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
+                                            {/* Doctor can view medical records */}
+                                            {isDoctor && (
+                                                <button
+                                                    onClick={() => fetchMedicalRecords(patient)}
+                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="View Medical Records"
+                                                >
+                                                    <FileText size={18} />
+                                                </button>
+                                            )}
+                                            {/* Registrator/Admin can edit and delete */}
+                                            {!isDoctor && (
+                                                <>
+                                                    <button
+                                                        onClick={() => openEditModal(patient)}
+                                                        className="p-2 text-slate-400 hover:text-clinic-600 hover:bg-clinic-50 rounded-lg transition-colors"
+                                                        title="Edit"
+                                                    >
+                                                        <Edit2 size={18} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(patient.id)}
+                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                        title="Delete"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -246,6 +277,70 @@ const PatientsPage = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+            {/* Doctor: View Patient Medical Records Modal */}
+            {viewingPatient && (
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center p-8 pb-6 border-b border-slate-100">
+                            <div>
+                                <h2 className="text-2xl font-bold text-slate-800">{viewingPatient.nama}</h2>
+                                <p className="text-slate-500 text-sm mt-1">NIK: {viewingPatient.nik} · Medical History</p>
+                            </div>
+                            <button onClick={() => { setViewingPatient(null); setPatientRecords(null); }} className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-50 rounded-full">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-8">
+                            {loadingRecords ? (
+                                <div className="flex items-center justify-center py-10"><Activity className="animate-pulse text-clinic-500" size={28} /></div>
+                            ) : patientRecords?.length === 0 ? (
+                                <div className="py-10 text-center text-slate-400">
+                                    <FileText size={32} className="mx-auto mb-3 text-slate-300" />
+                                    <p className="font-semibold text-slate-500">No medical records found</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    {patientRecords?.map(record => (
+                                        <div key={record.id} className="border border-slate-100 rounded-2xl p-5">
+                                            <div className="flex items-center space-x-2 mb-4">
+                                                <Calendar size={13} className="text-slate-400" />
+                                                <span className="text-sm font-bold text-slate-700">
+                                                    {new Date(record.visit_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                                </span>
+                                                <span className="text-xs text-slate-500">— Dr. {record.doctor_name}</span>
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-3 mb-4">
+                                                {[
+                                                    { label: 'Tekanan Darah', value: record.tekanan_darah },
+                                                    { label: 'Suhu Tubuh', value: record.suhu_tubuh ? `${record.suhu_tubuh}°C` : null },
+                                                    { label: 'Berat Badan', value: record.berat_badan ? `${record.berat_badan} kg` : null },
+                                                ].map(v => (
+                                                    <div key={v.label} className="bg-slate-50 rounded-xl p-3">
+                                                        <p className="text-xs text-slate-500">{v.label}</p>
+                                                        <p className="text-sm font-bold text-slate-700 mt-0.5">{v.value || '—'}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                                                {[
+                                                    { label: 'Diagnosa', value: record.diagnosa },
+                                                    { label: 'Rencana Terapi', value: record.rencana_terapi },
+                                                    { label: 'Resep Obat', value: record.resep_obat },
+                                                ].filter(v => v.value).map(v => (
+                                                    <div key={v.label}>
+                                                        <p className="text-xs text-slate-400 font-semibold uppercase tracking-wide">{v.label}</p>
+                                                        <p className="text-slate-700 mt-0.5">{v.value}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

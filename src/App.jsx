@@ -10,6 +10,8 @@ import PatientsPage from './pages/PatientsPage';
 import AppointmentsPage from './pages/AppointmentsPage';
 import QueueManagementPage from './pages/QueueManagementPage';
 import QueueDashboardPage from './pages/QueueDashboardPage';
+import AssessmentPage from './pages/AssessmentPage';
+import MedicalRecordsPage from './pages/MedicalRecordsPage';
 
 function App() {
   return (
@@ -29,7 +31,7 @@ function App() {
         <Route 
           path="/patients" 
           element={
-            <ProtectedRoute allowedRoles={['Admin', 'Registrator']}>
+            <ProtectedRoute allowedRoles={['Admin', 'Registrator', 'Doctor']}>
               <PatientsPage />
             </ProtectedRoute>
           } 
@@ -47,6 +49,22 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['Admin', 'Registrator']}>
               <QueueManagementPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/assessment" 
+          element={
+            <ProtectedRoute allowedRoles={['Doctor', 'Admin']}>
+              <AssessmentPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/medical-records" 
+          element={
+            <ProtectedRoute allowedRoles={['Doctor', 'Admin']}>
+              <MedicalRecordsPage />
             </ProtectedRoute>
           } 
         />

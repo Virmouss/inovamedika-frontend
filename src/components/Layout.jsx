@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
-import { LayoutDashboard, Users, UserRound, LogOut, FileText, CalendarClock, ListOrdered, Monitor } from 'lucide-react';
+import { LayoutDashboard, Users, LogOut, FileText, CalendarClock, ListOrdered, Monitor, Stethoscope } from 'lucide-react';
 
 const Sidebar = () => {
     const { user, logout } = useContext(AuthContext);
@@ -17,11 +17,23 @@ const Sidebar = () => {
     
     if (user?.role === 'Admin') {
         navItems.push({ path: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> });
-    }
-    if (user?.role === 'Registrator' || user?.role === 'Admin') {
         navItems.push({ path: '/patients', label: 'Patients', icon: <Users size={20} /> });
         navItems.push({ path: '/appointments', label: 'Appointments', icon: <CalendarClock size={20} /> });
         navItems.push({ path: '/queue', label: 'Queue Management', icon: <ListOrdered size={20} /> });
+        navItems.push({ path: '/assessment', label: 'Assessment', icon: <Stethoscope size={20} /> });
+        navItems.push({ path: '/medical-records', label: 'Medical Records', icon: <FileText size={20} /> });
+        navItems.push({ path: '/queue-dashboard', label: 'Queue Display', icon: <Monitor size={20} /> });
+    }
+    if (user?.role === 'Registrator') {
+        navItems.push({ path: '/patients', label: 'Patients', icon: <Users size={20} /> });
+        navItems.push({ path: '/appointments', label: 'Appointments', icon: <CalendarClock size={20} /> });
+        navItems.push({ path: '/queue', label: 'Queue Management', icon: <ListOrdered size={20} /> });
+        navItems.push({ path: '/queue-dashboard', label: 'Queue Display', icon: <Monitor size={20} /> });
+    }
+    if (user?.role === 'Doctor') {
+        navItems.push({ path: '/patients', label: 'My Patients', icon: <Users size={20} /> });
+        navItems.push({ path: '/assessment', label: 'Assessment', icon: <Stethoscope size={20} /> });
+        navItems.push({ path: '/medical-records', label: 'Medical Records', icon: <FileText size={20} /> });
         navItems.push({ path: '/queue-dashboard', label: 'Queue Display', icon: <Monitor size={20} /> });
     }
 
