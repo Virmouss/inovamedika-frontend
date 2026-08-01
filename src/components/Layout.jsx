@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
-import { LayoutDashboard, Users, UserRound, LogOut, FileText, CalendarClock } from 'lucide-react';
+import { LayoutDashboard, Users, UserRound, LogOut, FileText, CalendarClock, ListOrdered, Monitor } from 'lucide-react';
 
 const Sidebar = () => {
     const { user, logout } = useContext(AuthContext);
@@ -20,9 +20,10 @@ const Sidebar = () => {
     }
     if (user?.role === 'Registrator' || user?.role === 'Admin') {
         navItems.push({ path: '/patients', label: 'Patients', icon: <Users size={20} /> });
-        // Future V2: navItems.push({ path: '/appointments', label: 'Appointments', icon: <CalendarClock size={20} /> });
+        navItems.push({ path: '/appointments', label: 'Appointments', icon: <CalendarClock size={20} /> });
+        navItems.push({ path: '/queue', label: 'Queue Management', icon: <ListOrdered size={20} /> });
+        navItems.push({ path: '/queue-dashboard', label: 'Queue Display', icon: <Monitor size={20} /> });
     }
-    // Future V2: Medical records for Doctors
 
     return (
         <div className="w-64 bg-clinic-900 text-white min-h-screen flex flex-col shadow-xl">

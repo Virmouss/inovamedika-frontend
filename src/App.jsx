@@ -7,6 +7,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import PatientsPage from './pages/PatientsPage';
+import AppointmentsPage from './pages/AppointmentsPage';
+import QueueManagementPage from './pages/QueueManagementPage';
+import QueueDashboardPage from './pages/QueueDashboardPage';
 
 function App() {
   return (
@@ -31,7 +34,33 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        <Route 
+          path="/appointments" 
+          element={
+            <ProtectedRoute allowedRoles={['Admin', 'Registrator']}>
+              <AppointmentsPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/queue" 
+          element={
+            <ProtectedRoute allowedRoles={['Admin', 'Registrator']}>
+              <QueueManagementPage />
+            </ProtectedRoute>
+          } 
+        />
       </Route>
+
+      {/* Queue Dashboard — no sidebar, standalone full-screen page */}
+      <Route 
+        path="/queue-dashboard" 
+        element={
+          <ProtectedRoute allowedRoles={['Admin', 'Registrator', 'Doctor']}>
+            <QueueDashboardPage />
+          </ProtectedRoute>
+        } 
+      />
     </Routes>
   );
 }
