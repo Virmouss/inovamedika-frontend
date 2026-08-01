@@ -3,7 +3,7 @@ import axios from 'axios';
 import { AuthContext } from '../contexts/AuthContext';
 import {
     Stethoscope, Activity, ChevronRight, User, RefreshCw,
-    Plus, X, ClipboardList
+    Plus, X, ClipboardList, FileText
 } from 'lucide-react';
 
 const API_BASE = 'http://localhost:5000/api';
@@ -30,7 +30,6 @@ const AssessmentPage = () => {
     const [latestRecord, setLatestRecord] = useState(null);
     const [confirmAppt, setConfirmAppt] = useState(null);      // Begin Assessment confirmation
     const [cancelConfirmAppt, setCancelConfirmAppt] = useState(null); // Cancel Assessment confirmation
-    const [isFormOpen, setIsFormOpen] = useState(false);
     const [formData, setFormData] = useState({ ...emptyForm });
 
     const fetchTodayPatients = useCallback(async () => {
@@ -60,8 +59,13 @@ const AssessmentPage = () => {
     useEffect(() => { fetchTodayPatients(); }, [fetchTodayPatients]);
 
     useEffect(() => {
-        if (selectedAppt) fetchLatestRecord(selectedAppt.patient_id);
-        else setLatestRecord(null);
+        if (selectedAppt) {
+            fetchLatestRecord(selectedAppt.patient_id);
+            setFormData({ ...emptyForm, keluhan_awal: selectedAppt.keluhan_awal || '' });
+        } else {
+            setLatestRecord(null);
+            setFormData({ ...emptyForm });
+        }
     }, [selectedAppt, fetchLatestRecord]);
 
     const handleBeginAssessment = async (appt) => {
@@ -87,10 +91,7 @@ const AssessmentPage = () => {
         }
     };
 
-    const openForm = () => {
-        setFormData({ ...emptyForm, keluhan_awal: selectedAppt?.keluhan_awal || '' });
-        setIsFormOpen(true);
-    };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -102,7 +103,6 @@ const AssessmentPage = () => {
                 appointment_id: selectedAppt.id,
                 visit_date: new Date().toISOString(),
             });
-            setIsFormOpen(false);
             setSelectedAppt(null);
             await fetchTodayPatients();
         } catch (err) {
@@ -218,18 +218,11 @@ const AssessmentPage = () => {
                                             </button>
                                         )}
                                         {selectedAppt.status_kunjungan === 'assessing' && (
-                                            <>
-                                                <button onClick={() => setCancelConfirmAppt(selectedAppt)}
-                                                    className="flex items-center space-x-2 px-4 py-2.5 bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 border border-slate-200 hover:border-red-200 rounded-xl text-sm font-semibold transition-colors">
-                                                    <X size={16} />
-                                                    <span>Cancel Assessment</span>
-                                                </button>
-                                                <button onClick={openForm}
-                                                    className="flex items-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-clinic-600 to-clinic-500 hover:from-clinic-700 hover:to-clinic-600 text-white rounded-xl text-sm font-semibold transition-all shadow-md shadow-clinic-500/30">
-                                                    <Plus size={16} />
-                                                    <span>Write Medical Record</span>
-                                                </button>
-                                            </>
+                                            <button onClick={() => setCancelConfirmAppt(selectedAppt)}
+                                                className="flex items-center space-x-2 px-4 py-2.5 bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 border border-slate-200 hover:border-red-200 rounded-xl text-sm font-semibold transition-colors">
+                                                <X size={16} />
+                                                <span>Cancel Assessment</span>
+                                            </button>
                                         )}
                                     </div>
                                 </div>
@@ -282,6 +275,113 @@ const AssessmentPage = () => {
                 </div>
             </div>
 
+            {/* In-Line Medical Record Form (Full width below Queue & Medical Record cards) */}
+            {selectedAppt && selectedAppt.status_kunjungan === 'assessing' && (
+                <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden animate-slide-up">
+                    <div className="p-6 border-b border-slate-100 bg-gradient-to-r from-clinic-50/60 to-white flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                            <div className="h-10 w-10 rounded-2xl bg-clinic-100 text-clinic-700 flex items-center justify-center font-bold">
+                                <FileText size={20} />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-slate-800 text-base">New Medical Record</h3>
+                                <p className="text-xs text-slate-500 mt-0.5">Recording assessment for <strong>{selectedAppt.patient_name}</strong> (NIK: {selectedAppt.patient_nik})</p>
+                            </div>
+                        </div>
+                        <span className="px-3.5 py-1 bg-purple-50 text-purple-700 border border-purple-200/60 text-xs font-bold rounded-full">
+                            Assessing in Progress
+                        </span>
+                    </div>
+                    <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-6">
+                        <div>
+                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Vital Signs</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                {[
+                                    { label: 'Tekanan Darah', key: 'tekanan_darah', placeholder: 'e.g. 120/80 mmHg' },
+                                    { label: 'Suhu Tubuh (°C)', key: 'suhu_tubuh', placeholder: 'e.g. 36.5', type: 'number', step: '0.1' },
+                                    { label: 'Berat Badan (kg)', key: 'berat_badan', placeholder: 'e.g. 65', type: 'number', step: '0.1' },
+                                ].map(f => (
+                                    <div key={f.key} className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">{f.label}</label>
+                                        <input
+                                            type={f.type || 'text'}
+                                            step={f.step}
+                                            placeholder={f.placeholder}
+                                            value={formData[f.key]}
+                                            onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
+                                            className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all outline-none text-slate-700 font-medium"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Clinical Assessment</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">Keluhan Awal</label>
+                                    <textarea
+                                        rows={2}
+                                        placeholder="Patient's initial complaint..."
+                                        value={formData.keluhan_awal}
+                                        onChange={e => setFormData({ ...formData, keluhan_awal: e.target.value })}
+                                        className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all outline-none text-slate-700 font-medium resize-none"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">Diagnosa</label>
+                                    <textarea
+                                        rows={2}
+                                        placeholder="Doctor diagnosis..."
+                                        value={formData.diagnosa}
+                                        onChange={e => setFormData({ ...formData, diagnosa: e.target.value })}
+                                        className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all outline-none text-slate-700 font-medium resize-none"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">Rencana Terapi</label>
+                                    <textarea
+                                        rows={2}
+                                        placeholder="Treatment plan..."
+                                        value={formData.rencana_terapi}
+                                        onChange={e => setFormData({ ...formData, rencana_terapi: e.target.value })}
+                                        className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all outline-none text-slate-700 font-medium resize-none"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">Tindakan Medis</label>
+                                    <textarea
+                                        rows={2}
+                                        placeholder="Medical procedures performed..."
+                                        value={formData.tindakan_medis}
+                                        onChange={e => setFormData({ ...formData, tindakan_medis: e.target.value })}
+                                        className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all outline-none text-slate-700 font-medium resize-none"
+                                    />
+                                </div>
+                                <div className="space-y-1.5 md:col-span-2">
+                                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">Resep Obat</label>
+                                    <textarea
+                                        rows={2}
+                                        placeholder="Prescription details & dosage..."
+                                        value={formData.resep_obat}
+                                        onChange={e => setFormData({ ...formData, resep_obat: e.target.value })}
+                                        className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all outline-none text-slate-700 font-medium resize-none"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex justify-end pt-4 border-t border-slate-100">
+                            <button
+                                type="submit"
+                                className="flex items-center space-x-2 px-8 py-3.5 font-bold text-white bg-gradient-to-r from-clinic-600 to-clinic-500 hover:from-clinic-700 hover:to-clinic-600 rounded-xl transition-all shadow-lg shadow-clinic-500/30 hover:shadow-clinic-500/50 hover:-translate-y-0.5"
+                            >
+                                <span>Save Medical Record & Complete Treatment</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
             {/* Cancel Assessment Confirmation */}
             {cancelConfirmAppt && (
                 <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -320,66 +420,7 @@ const AssessmentPage = () => {
                 </div>
             )}
 
-            {/* Write Medical Record Form */}
-            {isFormOpen && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center p-8 pb-0">
-                            <div>
-                                <h2 className="text-2xl font-bold text-slate-800">New Medical Record</h2>
-                                <p className="text-slate-500 text-sm mt-1">Patient: <strong>{selectedAppt?.patient_name}</strong></p>
-                            </div>
-                            <button onClick={() => setIsFormOpen(false)} className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-50 rounded-full">
-                                <X size={20} />
-                            </button>
-                        </div>
-                        <form onSubmit={handleSubmit} className="p-8 space-y-6">
-                            <div>
-                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Vitals</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    {[
-                                        { label: 'Tekanan Darah', key: 'tekanan_darah', placeholder: 'e.g. 120/80' },
-                                        { label: 'Suhu Tubuh (°C)', key: 'suhu_tubuh', placeholder: 'e.g. 36.5', type: 'number', step: '0.1' },
-                                        { label: 'Berat Badan (kg)', key: 'berat_badan', placeholder: 'e.g. 65', type: 'number', step: '0.1' },
-                                    ].map(f => (
-                                        <div key={f.key} className="space-y-1">
-                                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">{f.label}</label>
-                                            <input type={f.type || 'text'} step={f.step} placeholder={f.placeholder} value={formData[f.key]}
-                                                onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
-                                                className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all outline-none text-slate-700 font-medium" />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div>
-                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Clinical Notes</h3>
-                                <div className="space-y-4">
-                                    {[
-                                        { label: 'Keluhan Awal', key: 'keluhan_awal', placeholder: "Patient's initial complaint..." },
-                                        { label: 'Diagnosa', key: 'diagnosa', placeholder: 'Diagnosis...' },
-                                        { label: 'Rencana Terapi', key: 'rencana_terapi', placeholder: 'Treatment plan...' },
-                                        { label: 'Tindakan Medis', key: 'tindakan_medis', placeholder: 'Medical procedures...' },
-                                        { label: 'Resep Obat', key: 'resep_obat', placeholder: 'Prescription details...' },
-                                    ].map(f => (
-                                        <div key={f.key} className="space-y-1">
-                                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">{f.label}</label>
-                                            <textarea rows="2" placeholder={f.placeholder} value={formData[f.key]}
-                                                onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
-                                                className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all outline-none text-slate-700 font-medium resize-none" />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="flex justify-end space-x-3 pt-4 border-t border-slate-100">
-                                <button type="button" onClick={() => setIsFormOpen(false)} className="px-6 py-3 font-semibold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200">Cancel</button>
-                                <button type="submit" className="px-6 py-3 font-semibold text-white bg-gradient-to-r from-clinic-600 to-clinic-500 rounded-xl hover:from-clinic-700 hover:to-clinic-600 shadow-md shadow-clinic-500/30">
-                                    Save Record & Mark Done
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+
         </div>
     );
 };

@@ -12,6 +12,7 @@ import QueueManagementPage from './pages/QueueManagementPage';
 import QueueDashboardPage from './pages/QueueDashboardPage';
 import AssessmentPage from './pages/AssessmentPage';
 import MedicalRecordsPage from './pages/MedicalRecordsPage';
+import PatientDetailsPage from './pages/PatientDetailsPage';
 
 function App() {
   return (
@@ -33,6 +34,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['Admin', 'Registrator', 'Doctor']}>
               <PatientsPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/patients/:id" 
+          element={
+            <ProtectedRoute allowedRoles={['Admin', 'Registrator', 'Doctor']}>
+              <PatientDetailsPage />
             </ProtectedRoute>
           } 
         />

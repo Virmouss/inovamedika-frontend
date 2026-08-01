@@ -1,23 +1,21 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
-import { Users, Plus, Search, Edit2, Trash2, Activity, Filter, FileText, X, Calendar } from 'lucide-react';
+import { Users, Plus, Search, Activity, User, ChevronRight } from 'lucide-react';
 
 const PatientsPage = () => {
     const { user } = useContext(AuthContext);
     const isDoctor = user?.role === 'Doctor';
+    const navigate = useNavigate();
     const [patients, setPatients] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    
+    // Add Modal State (Only Add stays here)
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [modalMode, setModalMode] = useState('add');
-    const [editingPatientId, setEditingPatientId] = useState(null);
     const [formData, setFormData] = useState({ nik: '', nama: '', kelamin: 'Laki-laki', tanggal_lahir: '', nomor_telepon: '', alamat: '' });
-
     const [search, setSearch] = useState('');
-    const [patientRecords, setPatientRecords] = useState(null); // medical history for view
-    const [loadingRecords, setLoadingRecords] = useState(false);
-    const [viewingPatient, setViewingPatient] = useState(null);
 
     const fetchPatients = async () => {
         try {
@@ -34,64 +32,20 @@ const PatientsPage = () => {
         fetchPatients();
     }, []);
 
-    const fetchMedicalRecords = async (patient) => {
-        setViewingPatient(patient);
-        setLoadingRecords(true);
-        setPatientRecords(null);
-        try {
-            const res = await axios.get(`http://localhost:5000/api/medical-records/patient/${patient.id}`);
-            setPatientRecords(res.data.data);
-        } catch (err) {
-            setPatientRecords([]);
-        } finally {
-            setLoadingRecords(false);
-        }
-    };
-
-    const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this patient record?')) {
-            try {
-                await axios.delete(`http://localhost:5000/api/patients/${id}`);
-                fetchPatients();
-            } catch (err) {
-                alert('Failed to delete patient');
-            }
-        }
-    };
-
     const openAddModal = () => {
         setFormData({ nik: '', nama: '', kelamin: 'Laki-laki', tanggal_lahir: '', nomor_telepon: '', alamat: '' });
-        setModalMode('add');
-        setIsModalOpen(true);
-    };
-
-    const openEditModal = (patient) => {
-        setFormData({
-            nik: patient.nik,
-            nama: patient.nama,
-            kelamin: patient.kelamin,
-            tanggal_lahir: patient.tanggal_lahir ? new Date(patient.tanggal_lahir).toISOString().split('T')[0] : '',
-            nomor_telepon: patient.nomor_telepon || '',
-            alamat: patient.alamat || ''
-        });
-        setEditingPatientId(patient.id);
-        setModalMode('edit');
         setIsModalOpen(true);
     };
 
     const handleSubmitPatient = async (e) => {
         e.preventDefault();
         try {
-            if (modalMode === 'add') {
-                await axios.post('http://localhost:5000/api/patients', formData);
-            } else {
-                await axios.put(`http://localhost:5000/api/patients/${editingPatientId}`, formData);
-            }
+            await axios.post('http://localhost:5000/api/patients', formData);
             setIsModalOpen(false);
             setFormData({ nik: '', nama: '', kelamin: 'Laki-laki', tanggal_lahir: '', nomor_telepon: '', alamat: '' });
             fetchPatients();
         } catch (err) {
-            alert(err.response?.data?.error || `Failed to ${modalMode} patient`);
+            alert(err.response?.data?.error || `Failed to add patient`);
         }
     };
 
@@ -147,76 +101,29 @@ const PatientsPage = () => {
                     </div>
                 </div>
                 
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm text-slate-600">
-                        <thead className="bg-slate-50/30 text-slate-500 font-semibold uppercase tracking-wider text-xs">
-                            <tr>
-                                <th className="px-8 py-5">Patient Details</th>
-                                <th className="px-8 py-5">NIK ID</th>
-                                <th className="px-8 py-5">Gender & DOB</th>
-                                <th className="px-8 py-5">Contact</th>
-                                <th className="px-8 py-5 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100/60">
-                            {patients.map(patient => (
-                                <tr key={patient.id} className="hover:bg-slate-50/50 transition-colors group">
-                                    <td className="px-8 py-5">
-                                        <div className="flex items-center space-x-3">
-                                            <div className="h-10 w-10 rounded-full bg-clinic-50 text-clinic-600 flex items-center justify-center font-bold text-sm border border-clinic-100">
-                                                {patient.nama.charAt(0).toUpperCase()}
-                                            </div>
-                                            <div>
-                                                <div className="font-bold text-slate-800 text-base">{patient.nama}</div>
-                                                <div className="text-xs text-slate-500 mt-0.5">ID: #{String(patient.id).padStart(5, '0')}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-5 font-medium text-slate-600 font-mono text-xs">{patient.nik}</td>
-                                    <td className="px-8 py-5">
-                                        <div className="font-medium text-slate-700">{patient.kelamin}</div>
-                                        <div className="text-xs text-slate-500 mt-0.5">{new Date(patient.tanggal_lahir).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
-                                    </td>
-                                    <td className="px-8 py-5 font-medium text-slate-600">{patient.nomor_telepon || '-'}</td>
-                                    <td className="px-8 py-5">
-                                        <div className="flex space-x-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                                            {/* Doctor can view medical records */}
-                                            {isDoctor && (
-                                                <button
-                                                    onClick={() => fetchMedicalRecords(patient)}
-                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="View Medical Records"
-                                                >
-                                                    <FileText size={18} />
-                                                </button>
-                                            )}
-                                            {/* Registrator/Admin can edit and delete */}
-                                            {!isDoctor && (
-                                                <>
-                                                    <button
-                                                        onClick={() => openEditModal(patient)}
-                                                        className="p-2 text-slate-400 hover:text-clinic-600 hover:bg-clinic-50 rounded-lg transition-colors"
-                                                        title="Edit"
-                                                    >
-                                                        <Edit2 size={18} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(patient.id)}
-                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                        title="Delete"
-                                                    >
-                                                        <Trash2 size={18} />
-                                                    </button>
-                                                </>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-4 bg-slate-50/30">
+                    {patients.map(patient => (
+                        <div key={patient.id} className="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all flex items-center justify-between group">
+                            <div className="flex items-center space-x-4">
+                                <div className="h-12 w-12 rounded-full bg-clinic-50 text-clinic-600 flex items-center justify-center font-bold text-lg border border-clinic-100 shrink-0">
+                                    {patient.nama.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="min-w-0">
+                                    <div className="font-bold text-slate-800 text-base truncate">{patient.nama}</div>
+                                    <div className="text-xs text-slate-500 font-mono mt-0.5">NIK: {patient.nik}</div>
+                                </div>
+                            </div>
+                            <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                                <button onClick={() => navigate(`/patients/${patient.id}`)} className="flex items-center space-x-1.5 px-4 py-2 text-sm font-semibold text-clinic-600 bg-clinic-50 hover:bg-clinic-100 hover:text-clinic-700 rounded-xl transition-colors">
+                                    <span>View Details</span>
+                                    <ChevronRight size={16} />
+                                </button>
+                            </div>
+                        </div>
+                    ))}
                     {patients.length === 0 && (
-                        <div className="p-16 text-center flex flex-col items-center text-slate-400 space-y-4">
-                            <div className="bg-slate-50 p-4 rounded-full border border-slate-100">
+                        <div className="col-span-1 lg:col-span-2 p-16 text-center flex flex-col items-center text-slate-400 space-y-4">
+                            <div className="bg-white p-4 rounded-full border border-slate-100 shadow-sm">
                                 <Users size={32} className="text-slate-300" />
                             </div>
                             <div>
@@ -234,7 +141,7 @@ const PatientsPage = () => {
                     <div className="bg-white rounded-3xl w-full max-w-xl p-8 shadow-2xl border border-white/20 animate-slide-up">
                         <div className="flex justify-between items-center mb-8">
                             <h2 className="text-2xl font-bold text-slate-800">
-                                {modalMode === 'add' ? 'Register New Patient' : 'Update Patient Record'}
+                                Register New Patient
                             </h2>
                             <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-50 rounded-full transition-colors">
                                 <svg className="w-5 h-5" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -273,74 +180,10 @@ const PatientsPage = () => {
                             <div className="flex justify-end space-x-3 mt-8 pt-6 border-t border-slate-100">
                                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-3 font-semibold tracking-wide text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">Cancel</button>
                                 <button type="submit" className="px-6 py-3 font-semibold tracking-wide text-white bg-gradient-to-r from-clinic-600 to-clinic-500 rounded-xl hover:from-clinic-700 hover:to-clinic-600 transition-all duration-300 shadow-md shadow-clinic-500/30">
-                                    {modalMode === 'add' ? 'Save Patient' : 'Update Record'}
+                                    Save Patient
                                 </button>
                             </div>
                         </form>
-                    </div>
-                </div>
-            )}
-            {/* Doctor: View Patient Medical Records Modal */}
-            {viewingPatient && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center p-8 pb-6 border-b border-slate-100">
-                            <div>
-                                <h2 className="text-2xl font-bold text-slate-800">{viewingPatient.nama}</h2>
-                                <p className="text-slate-500 text-sm mt-1">NIK: {viewingPatient.nik} · Medical History</p>
-                            </div>
-                            <button onClick={() => { setViewingPatient(null); setPatientRecords(null); }} className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-50 rounded-full">
-                                <X size={20} />
-                            </button>
-                        </div>
-                        <div className="p-8">
-                            {loadingRecords ? (
-                                <div className="flex items-center justify-center py-10"><Activity className="animate-pulse text-clinic-500" size={28} /></div>
-                            ) : patientRecords?.length === 0 ? (
-                                <div className="py-10 text-center text-slate-400">
-                                    <FileText size={32} className="mx-auto mb-3 text-slate-300" />
-                                    <p className="font-semibold text-slate-500">No medical records found</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-6">
-                                    {patientRecords?.map(record => (
-                                        <div key={record.id} className="border border-slate-100 rounded-2xl p-5">
-                                            <div className="flex items-center space-x-2 mb-4">
-                                                <Calendar size={13} className="text-slate-400" />
-                                                <span className="text-sm font-bold text-slate-700">
-                                                    {new Date(record.visit_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-                                                </span>
-                                                <span className="text-xs text-slate-500">— Dr. {record.doctor_name}</span>
-                                            </div>
-                                            <div className="grid grid-cols-3 gap-3 mb-4">
-                                                {[
-                                                    { label: 'Tekanan Darah', value: record.tekanan_darah },
-                                                    { label: 'Suhu Tubuh', value: record.suhu_tubuh ? `${record.suhu_tubuh}°C` : null },
-                                                    { label: 'Berat Badan', value: record.berat_badan ? `${record.berat_badan} kg` : null },
-                                                ].map(v => (
-                                                    <div key={v.label} className="bg-slate-50 rounded-xl p-3">
-                                                        <p className="text-xs text-slate-500">{v.label}</p>
-                                                        <p className="text-sm font-bold text-slate-700 mt-0.5">{v.value || '—'}</p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                                                {[
-                                                    { label: 'Diagnosa', value: record.diagnosa },
-                                                    { label: 'Rencana Terapi', value: record.rencana_terapi },
-                                                    { label: 'Resep Obat', value: record.resep_obat },
-                                                ].filter(v => v.value).map(v => (
-                                                    <div key={v.label}>
-                                                        <p className="text-xs text-slate-400 font-semibold uppercase tracking-wide">{v.label}</p>
-                                                        <p className="text-slate-700 mt-0.5">{v.value}</p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
                     </div>
                 </div>
             )}
