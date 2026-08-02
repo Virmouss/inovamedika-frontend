@@ -3,7 +3,7 @@ import axios from 'axios';
 import { AuthContext } from '../contexts/AuthContext';
 import {
     Stethoscope, Activity, ChevronRight, User, RefreshCw,
-    Plus, X, ClipboardList, FileText
+    Plus, X, ClipboardList, FileText, Trash2
 } from 'lucide-react';
 
 const API_BASE = 'http://localhost:5000/api';
@@ -16,10 +16,12 @@ const STATUS_STYLES = {
     cancelled: 'bg-red-50 text-red-700 border-red-200/50',
 };
 
+const emptyPrescriptionItem = { obat: '', dosis: '', instruksi: '' };
+
 const emptyForm = {
     keluhan_awal: '', tekanan_darah: '', suhu_tubuh: '',
     berat_badan: '', diagnosa: '', rencana_terapi: '',
-    tindakan_medis: '', resep_obat: '',
+    tindakan_medis: '',
 };
 
 const AssessmentPage = () => {
@@ -31,6 +33,7 @@ const AssessmentPage = () => {
     const [confirmAppt, setConfirmAppt] = useState(null);      // Begin Assessment confirmation
     const [cancelConfirmAppt, setCancelConfirmAppt] = useState(null); // Cancel Assessment confirmation
     const [formData, setFormData] = useState({ ...emptyForm });
+    const [prescriptions, setPrescriptions] = useState([{ ...emptyPrescriptionItem }]);
 
     const fetchTodayPatients = useCallback(async () => {
         try {
@@ -62,11 +65,34 @@ const AssessmentPage = () => {
         if (selectedAppt) {
             fetchLatestRecord(selectedAppt.patient_id);
             setFormData({ ...emptyForm, keluhan_awal: selectedAppt.keluhan_awal || '' });
+            setPrescriptions([{ ...emptyPrescriptionItem }]);
         } else {
             setLatestRecord(null);
             setFormData({ ...emptyForm });
+            setPrescriptions([{ ...emptyPrescriptionItem }]);
         }
     }, [selectedAppt, fetchLatestRecord]);
+
+    const handleAddPrescription = () => {
+        setPrescriptions(prev => [...prev, { ...emptyPrescriptionItem }]);
+    };
+
+    const handleRemovePrescription = (index) => {
+        setPrescriptions(prev => {
+            if (prev.length === 1) {
+                return [{ ...emptyPrescriptionItem }];
+            }
+            return prev.filter((_, i) => i !== index);
+        });
+    };
+
+    const handlePrescriptionChange = (index, field, value) => {
+        setPrescriptions(prev => {
+            const updated = [...prev];
+            updated[index] = { ...updated[index], [field]: value };
+            return updated;
+        });
+    };
 
     const handleBeginAssessment = async (appt) => {
         try {
@@ -96,14 +122,25 @@ const AssessmentPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post(`${API_BASE}/medical-records`, {
+            const recordRes = await axios.post(`${API_BASE}/medical-records`, {
                 ...formData,
                 patient_id: selectedAppt.patient_id,
                 doctor_id: user.doctor_id,
                 appointment_id: selectedAppt.id,
                 visit_date: new Date().toISOString(),
             });
+
+            // If any prescriptions were specified, create them linked to the new medical record
+            const validPrescriptions = prescriptions.filter(p => p.obat && p.obat.trim());
+            if (validPrescriptions.length > 0) {
+                await axios.post(`${API_BASE}/prescriptions`, {
+                    medical_record_id: recordRes.data.data.id,
+                    items: validPrescriptions,
+                });
+            }
+
             setSelectedAppt(null);
+            setPrescriptions([{ ...emptyPrescriptionItem }]);
             await fetchTodayPatients();
         } catch (err) {
             alert(err.response?.data?.error || 'Failed to save record');
@@ -358,16 +395,91 @@ const AssessmentPage = () => {
                                         className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all outline-none text-slate-700 font-medium resize-none"
                                     />
                                 </div>
-                                <div className="space-y-1.5 md:col-span-2">
-                                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">Resep Obat</label>
-                                    <textarea
-                                        rows={2}
-                                        placeholder="Prescription details & dosage..."
-                                        value={formData.resep_obat}
-                                        onChange={e => setFormData({ ...formData, resep_obat: e.target.value })}
-                                        className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all outline-none text-slate-700 font-medium resize-none"
-                                    />
-                                </div>
+                            </div>
+                        </div>
+
+                        {/* Prescription Section with Dynamic Multi-item Inputs */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                    <span>Resep Obat</span>
+                                    <span className="text-slate-400 font-normal normal-case text-xs tracking-normal">
+                                        (Opsional — kosongkan jika tidak ada resep)
+                                    </span>
+                                </h4>
+                                <button
+                                    type="button"
+                                    onClick={handleAddPrescription}
+                                    className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-xl text-xs font-bold transition-all shadow-sm hover:shadow active:scale-95"
+                                >
+                                    <Plus size={14} className="stroke-[2.5]" />
+                                    <span>Tambah Obat</span>
+                                </button>
+                            </div>
+
+                            <div className="space-y-3">
+                                {prescriptions.map((item, idx) => (
+                                    <div key={idx} className="p-4 md:p-5 bg-amber-50/40 border border-amber-200/60 rounded-2xl space-y-3 transition-all hover:border-amber-300 animate-slide-up">
+                                        <div className="flex items-center justify-between border-b border-amber-200/40 pb-2.5">
+                                            <div className="flex items-center space-x-2">
+                                                <span className="h-6 w-6 rounded-full bg-amber-200/80 text-amber-800 text-xs font-bold flex items-center justify-center">
+                                                    {idx + 1}
+                                                </span>
+                                                <span className="text-xs font-bold text-amber-900">Obat #{idx + 1}</span>
+                                            </div>
+                                            {prescriptions.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemovePrescription(idx)}
+                                                    className="flex items-center space-x-1 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded-lg transition-colors font-semibold"
+                                                    title="Hapus obat ini"
+                                                >
+                                                    <Trash2 size={13} />
+                                                    <span>Hapus</span>
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-semibold text-amber-800 uppercase tracking-wider ml-1">
+                                                    Nama Obat <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="e.g. Paracetamol 500mg"
+                                                    value={item.obat}
+                                                    onChange={e => handlePrescriptionChange(idx, 'obat', e.target.value)}
+                                                    className="w-full px-4 py-2.5 bg-white rounded-xl border border-amber-200 focus:border-amber-400 focus:ring-4 focus:ring-amber-400/10 focus:bg-white transition-all outline-none text-slate-700 font-medium text-sm"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-semibold text-amber-800 uppercase tracking-wider ml-1">
+                                                    Dosis
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="e.g. 3x1 tablet sehari"
+                                                    value={item.dosis}
+                                                    onChange={e => handlePrescriptionChange(idx, 'dosis', e.target.value)}
+                                                    className="w-full px-4 py-2.5 bg-white rounded-xl border border-amber-200 focus:border-amber-400 focus:ring-4 focus:ring-amber-400/10 focus:bg-white transition-all outline-none text-slate-700 font-medium text-sm"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-semibold text-amber-800 uppercase tracking-wider ml-1">
+                                                    Instruksi / Aturan Pakai
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="e.g. Sesudah makan, dihabiskan"
+                                                    value={item.instruksi}
+                                                    onChange={e => handlePrescriptionChange(idx, 'instruksi', e.target.value)}
+                                                    className="w-full px-4 py-2.5 bg-white rounded-xl border border-amber-200 focus:border-amber-400 focus:ring-4 focus:ring-amber-400/10 focus:bg-white transition-all outline-none text-slate-700 font-medium text-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                         <div className="flex justify-end pt-4 border-t border-slate-100">
