@@ -12,6 +12,7 @@ import QueueManagementPage from './pages/QueueManagementPage';
 import QueueDashboardPage from './pages/QueueDashboardPage';
 import AssessmentPage from './pages/AssessmentPage';
 import MedicalRecordsPage from './pages/MedicalRecordsPage';
+import MedicalRecordDetailPage from './pages/MedicalRecordDetailPage';
 import PatientDetailsPage from './pages/PatientDetailsPage';
 
 function App() {
@@ -74,6 +75,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['Doctor', 'Admin']}>
               <MedicalRecordsPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/medical-records/:id" 
+          element={
+            <ProtectedRoute allowedRoles={['Doctor', 'Admin']}>
+              <MedicalRecordDetailPage />
             </ProtectedRoute>
           } 
         />

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../contexts/AuthContext';
-import { User, Activity, Edit2, Trash2, Calendar, FileText, ArrowLeft, X } from 'lucide-react';
+import { User, Activity, Edit2, Trash2, Calendar, FileText, ArrowLeft, X, ChevronRight } from 'lucide-react';
 
 const API_BASE = 'http://localhost:5000/api';
 
@@ -22,18 +22,6 @@ const PatientDetailsPage = () => {
     // Edit Modal State
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [formData, setFormData] = useState({});
-
-    // View Record Modal State
-    const [viewRecord, setViewRecord] = useState(null);
-
-    // Edit Record Modal State
-    const [isEditRecordModalOpen, setIsEditRecordModalOpen] = useState(false);
-    const [editingRecordId, setEditingRecordId] = useState(null);
-    const [recordFormData, setRecordFormData] = useState({
-        keluhan_awal: '', tekanan_darah: '', suhu_tubuh: '',
-        berat_badan: '', diagnosa: '', rencana_terapi: '',
-        tindakan_medis: '', resep_obat: '',
-    });
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -94,52 +82,10 @@ const PatientDetailsPage = () => {
         try {
             await axios.put(`${API_BASE}/patients/${id}`, formData);
             setIsEditModalOpen(false);
-            // Refresh patient details
             const res = await axios.get(`${API_BASE}/patients/${id}`);
             setPatient(res.data.data);
         } catch (err) {
             alert(err.response?.data?.error || 'Failed to update patient');
-        }
-    };
-
-    const openEditRecord = (record) => {
-        setRecordFormData({
-            keluhan_awal: record.keluhan_awal || '',
-            tekanan_darah: record.tekanan_darah || '',
-            suhu_tubuh: record.suhu_tubuh || '',
-            berat_badan: record.berat_badan || '',
-            diagnosa: record.diagnosa || '',
-            rencana_terapi: record.rencana_terapi || '',
-            tindakan_medis: record.tindakan_medis || '',
-            resep_obat: record.resep_obat || '',
-        });
-        setEditingRecordId(record.id);
-        setIsEditRecordModalOpen(true);
-    };
-
-    const handleUpdateRecord = async (e) => {
-        e.preventDefault();
-        try {
-            await axios.put(`${API_BASE}/medical-records/${editingRecordId}`, recordFormData);
-            setIsEditRecordModalOpen(false);
-            // Refresh records
-            const res = await axios.get(`${API_BASE}/medical-records/patient/${id}`);
-            setRecords(res.data.data);
-        } catch (err) {
-            alert(err.response?.data?.error || 'Failed to update record');
-        }
-    };
-
-    const handleDeleteRecord = async (recordId) => {
-        if (window.confirm('Delete this medical record? This action cannot be undone.')) {
-            try {
-                await axios.delete(`${API_BASE}/medical-records/${recordId}`);
-                setViewRecord(null);
-                const res = await axios.get(`${API_BASE}/medical-records/patient/${id}`);
-                setRecords(res.data.data);
-            } catch (err) {
-                alert('Failed to delete medical record');
-            }
         }
     };
 
@@ -251,8 +197,9 @@ const PatientDetailsPage = () => {
                                                     </span>
                                                     <span className="text-xs text-slate-500 font-medium px-2 py-0.5 bg-slate-100 rounded-md">Dr. {record.doctor_name}</span>
                                                 </div>
-                                                <button onClick={() => setViewRecord(record)} className="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
-                                                    View Full Record
+                                                <button onClick={() => navigate(`/medical-records/${record.id}`)} className="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors opacity-0 group-hover:opacity-100 flex items-center space-x-1">
+                                                    <span>View Details</span>
+                                                    <ChevronRight size={12} />
                                                 </button>
                                             </div>
                                             <div className="grid grid-cols-2 gap-3 text-sm">
@@ -277,84 +224,6 @@ const PatientDetailsPage = () => {
                     </div>
                 )}
             </div>
-
-            {/* View Full Medical Record Modal */}
-            {viewRecord && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto relative">
-                        <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-100 flex justify-between items-center p-6 z-10">
-                            <div>
-                                <h2 className="text-xl font-bold text-slate-800">Medical Record Details</h2>
-                                <p className="text-slate-500 text-sm mt-0.5">
-                                    {new Date(viewRecord.visit_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} — Dr. {viewRecord.doctor_name}
-                                </p>
-                            </div>
-                            <button onClick={() => setViewRecord(null)} className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-50 rounded-full transition-colors">
-                                <X size={20} />
-                            </button>
-                        </div>
-                        <div className="p-8 space-y-8">
-                            <div>
-                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Vitals</h3>
-                                <div className="grid grid-cols-3 gap-3">
-                                    {[
-                                        { label: 'Tekanan Darah', value: viewRecord.tekanan_darah },
-                                        { label: 'Suhu Tubuh', value: viewRecord.suhu_tubuh ? `${viewRecord.suhu_tubuh}°C` : null },
-                                        { label: 'Berat Badan', value: viewRecord.berat_badan ? `${viewRecord.berat_badan} kg` : null },
-                                    ].map(v => (
-                                        <div key={v.label} className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                                            <p className="text-xs text-slate-500 font-medium">{v.label}</p>
-                                            <p className="text-sm font-bold text-slate-800 mt-1">{v.value || '—'}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div>
-                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Clinical Notes</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-sm bg-slate-50/50 p-5 rounded-2xl border border-slate-100">
-                                    {[
-                                        { label: 'Keluhan Awal', value: viewRecord.keluhan_awal },
-                                        { label: 'Diagnosa', value: viewRecord.diagnosa },
-                                        { label: 'Rencana Terapi', value: viewRecord.rencana_terapi },
-                                        { label: 'Tindakan Medis', value: viewRecord.tindakan_medis },
-                                        { label: 'Resep Obat', value: viewRecord.resep_obat },
-                                    ].filter(v => v.value).map(v => (
-                                        <div key={v.label}>
-                                            <p className="text-xs text-slate-400 font-semibold uppercase tracking-wide">{v.label}</p>
-                                            <p className="text-slate-700 mt-1.5 font-medium leading-relaxed">{v.value}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                                {(isDoctor || isAdmin) && (
-                                    <div className="flex space-x-2">
-                                        <button 
-                                            onClick={() => {
-                                                const rec = viewRecord;
-                                                setViewRecord(null);
-                                                openEditRecord(rec);
-                                            }} 
-                                            className="flex items-center space-x-1.5 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 hover:text-clinic-600 hover:border-clinic-200 hover:bg-clinic-50 rounded-xl font-semibold text-sm transition-colors shadow-sm"
-                                        >
-                                            <Edit2 size={15} />
-                                            <span>Edit Record</span>
-                                        </button>
-                                        <button 
-                                            onClick={() => handleDeleteRecord(viewRecord.id)} 
-                                            className="flex items-center space-x-1.5 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 hover:text-red-600 hover:border-red-200 hover:bg-red-50 rounded-xl font-semibold text-sm transition-colors shadow-sm"
-                                        >
-                                            <Trash2 size={15} />
-                                            <span>Delete</span>
-                                        </button>
-                                    </div>
-                                )}
-                                <button onClick={() => setViewRecord(null)} className="px-6 py-2.5 font-semibold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">Close</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Edit Patient Modal */}
             {isEditModalOpen && (
@@ -401,61 +270,6 @@ const PatientDetailsPage = () => {
                                 <button type="submit" className="px-6 py-3 font-semibold text-white bg-clinic-600 hover:bg-clinic-700 rounded-xl transition-colors shadow-md shadow-clinic-500/30">
                                     Update Profile
                                 </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Edit Medical Record Modal */}
-            {isEditRecordModalOpen && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center p-8 pb-0">
-                            <h2 className="text-2xl font-bold text-slate-800">Edit Medical Record</h2>
-                            <button onClick={() => setIsEditRecordModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-50 rounded-full">
-                                <X size={20} />
-                            </button>
-                        </div>
-                        <form onSubmit={handleUpdateRecord} className="p-8 space-y-6">
-                            <div>
-                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Vitals</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    {[
-                                        { label: 'Tekanan Darah', key: 'tekanan_darah', placeholder: 'e.g. 120/80' },
-                                        { label: 'Suhu Tubuh (°C)', key: 'suhu_tubuh', type: 'number', step: '0.1', placeholder: 'e.g. 36.5' },
-                                        { label: 'Berat Badan (kg)', key: 'berat_badan', type: 'number', step: '0.1', placeholder: 'e.g. 65' },
-                                    ].map(f => (
-                                        <div key={f.key} className="space-y-1">
-                                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">{f.label}</label>
-                                            <input type={f.type || 'text'} step={f.step} placeholder={f.placeholder} value={recordFormData[f.key]}
-                                                onChange={e => setRecordFormData({ ...recordFormData, [f.key]: e.target.value })}
-                                                className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all outline-none text-slate-700 font-medium" />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div>
-                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Clinical Notes</h3>
-                                <div className="space-y-4">
-                                    {[
-                                        { label: 'Keluhan Awal', key: 'keluhan_awal' },
-                                        { label: 'Diagnosa', key: 'diagnosa' },
-                                        { label: 'Rencana Terapi', key: 'rencana_terapi' },
-                                        { label: 'Tindakan Medis', key: 'tindakan_medis' },
-                                        { label: 'Resep Obat', key: 'resep_obat' },
-                                    ].map(f => (
-                                        <div key={f.key} className="space-y-1">
-                                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">{f.label}</label>
-                                            <textarea rows="2" value={recordFormData[f.key]} onChange={e => setRecordFormData({ ...recordFormData, [f.key]: e.target.value })}
-                                                className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all outline-none text-slate-700 font-medium resize-none" />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="flex justify-end space-x-3 pt-4 border-t border-slate-100">
-                                <button type="button" onClick={() => setIsEditRecordModalOpen(false)} className="px-6 py-3 font-semibold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200">Cancel</button>
-                                <button type="submit" className="px-6 py-3 font-semibold text-white bg-gradient-to-r from-clinic-600 to-clinic-500 rounded-xl hover:from-clinic-700 hover:to-clinic-600 shadow-md shadow-clinic-500/30">Update Record</button>
                             </div>
                         </form>
                     </div>

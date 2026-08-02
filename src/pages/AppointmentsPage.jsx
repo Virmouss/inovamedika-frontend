@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { CalendarClock, Plus, Search, Edit2, Trash2, Activity, X } from 'lucide-react';
+import Pagination from '../components/Pagination';
 
 const API_BASE = 'http://localhost:5000/api';
 
@@ -36,17 +37,21 @@ const AppointmentsPage = () => {
 
     const [searchTerm, setSearchTerm] = useState('');
     const [filterDate, setFilterDate] = useState('');
+    const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
+    const PAGE_SIZE = 10;
 
     const [patientSearch, setPatientSearch] = useState('');
     const [showPatientDropdown, setShowPatientDropdown] = useState(false);
 
     // ---------- Data fetching ----------
-    const fetchAppointments = async () => {
+    const fetchAppointments = async (currentPage = page) => {
         try {
-            const params = {};
+            const params = { page: currentPage, limit: 10 };
             if (filterDate) params.date = filterDate;
             const res = await axios.get(`${API_BASE}/registrations`, { params });
             setAppointments(res.data.data);
+            if (res.data.pagination) setPagination(res.data.pagination);
         } catch (err) {
             setError('Failed to fetch appointments.');
         } finally {
@@ -84,8 +89,13 @@ const AppointmentsPage = () => {
     }, [patientSearch]);
 
     useEffect(() => {
-        fetchAppointments();
-    }, [filterDate]);
+        setPage(1);
+        fetchAppointments(1);
+    }, [filterDate]); // eslint-disable-line
+
+    useEffect(() => {
+        fetchAppointments(page);
+    }, [page]); // eslint-disable-line
 
     // ---------- Handlers ----------
     const openAddModal = () => {
@@ -193,6 +203,11 @@ const AppointmentsPage = () => {
                             <CalendarClock size={20} />
                         </div>
                         <h2 className="text-lg font-bold text-slate-800">Appointments List</h2>
+                        {pagination.total > 0 && (
+                            <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
+                                {pagination.total} total
+                            </span>
+                        )}
                     </div>
                     <div className="flex flex-col sm:flex-row gap-3">
                         <input
@@ -294,6 +309,14 @@ const AppointmentsPage = () => {
                         </div>
                     )}
                 </div>
+
+                <Pagination
+                    page={page}
+                    totalPages={pagination.totalPages}
+                    total={pagination.total}
+                    limit={PAGE_SIZE}
+                    onPageChange={newPage => setPage(newPage)}
+                />
             </div>
 
             {/* Add/Edit Modal */}
