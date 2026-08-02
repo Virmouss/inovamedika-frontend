@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Activity, Users, CalendarCheck, Clock, CheckCircle } from 'lucide-react';
-
-const API_BASE = 'http://localhost:5000/api';
+import { API_BASE } from '../config/api';
 
 const QueueDashboardPage = () => {
     const [data, setData] = useState({ queue: [], stats: null, currentCalled: null });

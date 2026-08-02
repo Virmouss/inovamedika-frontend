@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Users, Phone, CheckCircle, XCircle, RefreshCw, Hash, Activity, UserCheck } from 'lucide-react';
-
-const API_BASE = 'http://localhost:5000/api';
+import { API_BASE } from '../config/api';
 
 const STATUS_STYLES = {
     waiting:   { badge: 'bg-amber-50 text-amber-700 border-amber-200/50',   dot: 'bg-amber-400' },

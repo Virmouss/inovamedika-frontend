@@ -16,8 +16,7 @@ import {
     AlertTriangle,
     Stethoscope
 } from 'lucide-react';
-
-const API_BASE = 'http://localhost:5000/api';
+import { API_BASE } from '../config/api';
 
 const DashboardPage = () => {
     const [users, setUsers] = useState([]);

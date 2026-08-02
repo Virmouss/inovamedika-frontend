@@ -3,8 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../contexts/AuthContext';
 import { User, Activity, Edit2, Trash2, Calendar, FileText, ArrowLeft, X, ChevronRight } from 'lucide-react';
-
-const API_BASE = 'http://localhost:5000/api';
+import { API_BASE } from '../config/api';
 
 const PatientDetailsPage = () => {
     const { id } = useParams();

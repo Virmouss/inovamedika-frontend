@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { FileText, Activity, Calendar, Search, ChevronRight } from 'lucide-react';
 import Pagination from '../components/Pagination';
+import { API_BASE } from '../config/api';
 
-const API_BASE = 'http://localhost:5000/api';
 const PAGE_SIZE = 10;
 
 const MedicalRecordsPage = () => {

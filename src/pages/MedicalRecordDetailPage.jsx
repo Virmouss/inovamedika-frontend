@@ -6,8 +6,7 @@ import {
     Activity, ArrowLeft, Calendar, User, Stethoscope,
     FileText, Edit2, Trash2, X, Pill, Thermometer, Weight, HeartPulse
 } from 'lucide-react';
-
-const API_BASE = 'http://localhost:5000/api';
+import { API_BASE } from '../config/api';
 
 const emptyForm = {
     keluhan_awal: '', tekanan_darah: '', suhu_tubuh: '',

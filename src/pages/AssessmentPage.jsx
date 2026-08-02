@@ -5,8 +5,7 @@ import {
     Stethoscope, Activity, ChevronRight, User, RefreshCw,
     Plus, X, ClipboardList, FileText, Trash2
 } from 'lucide-react';
-
-const API_BASE = 'http://localhost:5000/api';
+import { API_BASE } from '../config/api';
 
 const STATUS_STYLES = {
     waiting: 'bg-amber-50 text-amber-700 border-amber-200/50',

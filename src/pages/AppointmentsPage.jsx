@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { CalendarClock, Plus, Search, Edit2, Trash2, Activity, X } from 'lucide-react';
 import Pagination from '../components/Pagination';
-
-const API_BASE = 'http://localhost:5000/api';
+import { API_BASE } from '../config/api';
 
 const STATUS_STYLES = {
     waiting: 'bg-amber-50 text-amber-700 border-amber-200/50',

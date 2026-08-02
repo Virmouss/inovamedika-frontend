@@ -1,0 +1,16 @@
+services:
+  # ==========================================
+  # Frontend UI Service: React + Vite + Nginx
+  # ==========================================
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+    container_name: inovamedika-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
