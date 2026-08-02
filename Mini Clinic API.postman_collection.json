@@ -1,0 +1,1569 @@
+{
+  "info": {
+    "_postman_id": "d8c20856-0ee2-4aec-b9eb-8e1d31e5f247",
+    "name": "Mini Clinic API",
+    "description": "Nama: Izzan Alfadhil\n\nTest API Endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "57070271"
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.status === 'true' && json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "    pm.collectionVariables.set('admin_token', json.data.token);",
+                  "    console.log('[Auth] Admin token saved successfully');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login (Doctor - Dr. Budi)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.status === 'true' && json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "    pm.collectionVariables.set('doctor_token', json.data.token);",
+                  "    if (json.data.user && json.data.user.doctor_id) {",
+                  "        pm.collectionVariables.set('doctor_id', String(json.data.user.doctor_id));",
+                  "    }",
+                  "    console.log('[Auth] Doctor token and doctor_id saved successfully');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"budi\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login (Registrator)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.status === 'true' && json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "    pm.collectionVariables.set('registrator_token', json.data.token);",
+                  "    console.log('[Auth] Registrator token saved successfully');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"registrator1\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Patient Management",
+      "item": [
+        {
+          "name": "Get All Patients (Auto-Captures Valid patient_id)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.status === 'true' && Array.isArray(json.data) && json.data.length > 0) {",
+                  "    const firstPatient = json.data[0];",
+                  "    pm.collectionVariables.set('patient_id', String(firstPatient.id));",
+                  "    console.log('[Auto-Discovery] Found valid patient_id:', firstPatient.id, '(' + firstPatient.nama + ')');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/patients?page=1&limit=10&search=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "patients"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Patient by ID (With Auto-ID Iteration)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Auto-iteration & retry on 404 / ID not found",
+                  "const resCode = pm.response.code;",
+                  "let notFound = resCode === 404;",
+                  "try {",
+                  "    const data = pm.response.json();",
+                  "    if (data.message && data.message.includes('not found')) notFound = true;",
+                  "} catch(e) {}",
+                  "",
+                  "const varKey = 'patient_id';",
+                  "const currentId = parseInt(pm.collectionVariables.get(varKey) || '1', 10);",
+                  "const retryCount = parseInt(pm.collectionVariables.get('retry_' + varKey) || '0', 10);",
+                  "const maxRetries = 25;",
+                  "",
+                  "if (notFound && retryCount < maxRetries) {",
+                  "    pm.collectionVariables.set('retry_' + varKey, retryCount + 1);",
+                  "    pm.collectionVariables.set(varKey, String(currentId + 1));",
+                  "    console.log(`[Auto-Iterate] ${varKey}=${currentId} not found (404). Trying ID ${currentId + 1}...`);",
+                  "    postman.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "    pm.collectionVariables.set('retry_' + varKey, 0);",
+                  "    if (!notFound && resCode >= 200 && resCode < 300) {",
+                  "        console.log(`[Success] Verified valid ${varKey}=${currentId}`);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/patients/{{patient_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "patients",
+                "{{patient_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Patient",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Generate random NIK to avoid unique constraint conflict",
+                  "const randomNik = '32' + Math.floor(10000000000000 + Math.random() * 90000000000000);",
+                  "pm.variables.set('temp_nik', randomNik);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.status === 'true' && json.data && json.data.id) {",
+                  "    pm.collectionVariables.set('patient_id', String(json.data.id));",
+                  "    console.log('[Patient Created] Saved new patient_id:', json.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nik\": \"{{temp_nik}}\",\n  \"nama\": \"Bambang Pamungkas\",\n  \"kelamin\": \"Laki-laki\",\n  \"tanggal_lahir\": \"1985-06-10\",\n  \"nomor_telepon\": \"081298765432\",\n  \"alamat\": \"Jl. Sudirman No. 45, Jakarta Pusat\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/patients",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "patients"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Auto-iteration & retry on 404",
+                  "const resCode = pm.response.code;",
+                  "let notFound = resCode === 404;",
+                  "const varKey = 'patient_id';",
+                  "const currentId = parseInt(pm.collectionVariables.get(varKey) || '1', 10);",
+                  "const retryCount = parseInt(pm.collectionVariables.get('retry_' + varKey) || '0', 10);",
+                  "if (notFound && retryCount < 25) {",
+                  "    pm.collectionVariables.set('retry_' + varKey, retryCount + 1);",
+                  "    pm.collectionVariables.set(varKey, String(currentId + 1));",
+                  "    postman.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "    pm.collectionVariables.set('retry_' + varKey, 0);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama\": \"Bambang Pamungkas (Updated)\",\n  \"nik\": \"120385712038\",\n  \"kelamin\": \"Laki-laki\",\n  \"tanggal_lahir\": \"1985-06-10\",\n  \"nomor_telepon\": \"081298765999\",\n  \"alamat\": \"Jl. MH Thamrin No. 10, Jakarta Pusat\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/patients/{{patient_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "patients",
+                "{{patient_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{registrator_token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Ensure Registrator token is set",
+              "if (!pm.collectionVariables.get('registrator_token')) {",
+              "    pm.sendRequest({",
+              "        url: pm.collectionVariables.get('baseUrl') + '/login',",
+              "        method: 'POST',",
+              "        header: { 'Content-Type': 'application/json' },",
+              "        body: { mode: 'raw', raw: JSON.stringify({ username: 'registrator1', password: 'password123' }) }",
+              "    }, function (err, res) {",
+              "        if (!err && res.code === 200) {",
+              "            const data = res.json().data;",
+              "            pm.collectionVariables.set('registrator_token', data.token);",
+              "            pm.collectionVariables.set('token', data.token);",
+              "        }",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Registration & Appointments",
+      "item": [
+        {
+          "name": "Get All Doctors (Auto-Captures Valid doctor_id)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.status === 'true' && Array.isArray(json.data) && json.data.length > 0) {",
+                  "    pm.collectionVariables.set('doctor_id', String(json.data[0].id));",
+                  "    console.log('[Auto-Discovery] Found valid doctor_id:', json.data[0].id, '(' + json.data[0].name + ')');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/registrations/doctors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations",
+                "doctors"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Appointments (Auto-Captures Valid appointment_id)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.status === 'true' && Array.isArray(json.data) && json.data.length > 0) {",
+                  "    const firstAppt = json.data[0];",
+                  "    pm.collectionVariables.set('appointment_id', String(firstAppt.id));",
+                  "    if (firstAppt.patient_id) pm.collectionVariables.set('patient_id', String(firstAppt.patient_id));",
+                  "    if (firstAppt.doctor_id) pm.collectionVariables.set('doctor_id', String(firstAppt.doctor_id));",
+                  "    console.log('[Auto-Discovery] Found valid appointment_id:', firstAppt.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/registrations?page=1&limit=10&date=&status=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "date",
+                  "value": ""
+                },
+                {
+                  "key": "status",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Appointment by ID (With Auto-ID Iteration)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Auto-iteration & retry on 404",
+                  "const resCode = pm.response.code;",
+                  "let notFound = resCode === 404;",
+                  "const varKey = 'appointment_id';",
+                  "const currentId = parseInt(pm.collectionVariables.get(varKey) || '1', 10);",
+                  "const retryCount = parseInt(pm.collectionVariables.get('retry_' + varKey) || '0', 10);",
+                  "const maxRetries = 25;",
+                  "",
+                  "if (notFound && retryCount < maxRetries) {",
+                  "    pm.collectionVariables.set('retry_' + varKey, retryCount + 1);",
+                  "    pm.collectionVariables.set(varKey, String(currentId + 1));",
+                  "    console.log(`[Auto-Iterate] ${varKey}=${currentId} not found (404). Trying ID ${currentId + 1}...`);",
+                  "    postman.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "    pm.collectionVariables.set('retry_' + varKey, 0);",
+                  "    if (!notFound && resCode >= 200 && resCode < 300) {",
+                  "        console.log(`[Success] Verified valid ${varKey}=${currentId}`);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/registrations/{{appointment_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations",
+                "{{appointment_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Appointment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.status === 'true' && json.data && json.data.id) {",
+                  "    pm.collectionVariables.set('appointment_id', String(json.data.id));",
+                  "    console.log('[Appointment Created] Saved new appointment_id:', json.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id\": {{patient_id}},\n  \"doctor_id\": {{doctor_id}},\n  \"poli\": \"Poli Penyakit Dalam\",\n  \"keluhan_awal\": \"Demam dan pusing sejak 2 hari yang lalu\",\n  \"jenis_pembayaran\": \"BPJS\",\n  \"jadwal_kunjungan\": \"2026-08-02T14:00:00.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/registrations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update / Reschedule Appointment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Auto-iteration & retry on 404",
+                  "const resCode = pm.response.code;",
+                  "let notFound = resCode === 404;",
+                  "const varKey = 'appointment_id';",
+                  "const currentId = parseInt(pm.collectionVariables.get(varKey) || '1', 10);",
+                  "const retryCount = parseInt(pm.collectionVariables.get('retry_' + varKey) || '0', 10);",
+                  "if (notFound && retryCount < 25) {",
+                  "    pm.collectionVariables.set('retry_' + varKey, retryCount + 1);",
+                  "    pm.collectionVariables.set(varKey, String(currentId + 1));",
+                  "    postman.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "    pm.collectionVariables.set('retry_' + varKey, 0);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id\": {{patient_id}},\n  \"doctor_id\": {{doctor_id}},\n  \"poli\": \"Poli Penyakit Dalam\",\n  \"keluhan_awal\": \"Demam dan sakit kepala berkepanjangan\",\n  \"jenis_pembayaran\": \"Umum\",\n  \"status_kunjungan\": \"waiting\",\n  \"jadwal_kunjungan\": \"2026-08-02T15:30:00.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/registrations/{{appointment_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations",
+                "{{appointment_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Appointment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/registrations/{{appointment_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations",
+                "{{appointment_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{registrator_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "4. Queue Management",
+      "item": [
+        {
+          "name": "Get Today Queue & Dashboard Stats (Auto-Captures Queue ID)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.status === 'true' && json.data && Array.isArray(json.data.queue) && json.data.queue.length > 0) {",
+                  "    const firstQueue = json.data.queue[0];",
+                  "    pm.collectionVariables.set('appointment_id', String(firstQueue.id));",
+                  "    console.log('[Auto-Discovery] Queue found appointment_id:', firstQueue.id, 'Queue:', firstQueue.queue_number);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/queues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "queues"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate / Assign Queue Number",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointment_id\": {{appointment_id}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/queues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "queues"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Call Patient in Queue",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/queues/{{appointment_id}}/call",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "queues",
+                "{{appointment_id}}",
+                "call"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Queue Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"assessing\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/queues/{{appointment_id}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "queues",
+                "{{appointment_id}}",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Patient from Queue",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/queues/{{appointment_id}}/remove",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "queues",
+                "{{appointment_id}}",
+                "remove"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{registrator_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "5. Medical Records",
+      "item": [
+        {
+          "name": "Get All Medical Records (Auto-Captures Valid medical_record_id)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.status === 'true' && Array.isArray(json.data) && json.data.length > 0) {",
+                  "    const firstRecord = json.data[0];",
+                  "    pm.collectionVariables.set('medical_record_id', String(firstRecord.id));",
+                  "    if (firstRecord.patient_id) pm.collectionVariables.set('patient_id', String(firstRecord.patient_id));",
+                  "    console.log('[Auto-Discovery] Found valid medical_record_id:', firstRecord.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/medical-records?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "medical-records"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Patient Medical Records History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/medical-records/patient/{{patient_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "medical-records",
+                "patient",
+                "{{patient_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Today Patients for Doctor Assessment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/medical-records/today-patients",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "medical-records",
+                "today-patients"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Medical Record by ID (With Auto-ID Iteration)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Auto-iteration & retry on 404",
+                  "const resCode = pm.response.code;",
+                  "let notFound = resCode === 404;",
+                  "const varKey = 'medical_record_id';",
+                  "const currentId = parseInt(pm.collectionVariables.get(varKey) || '1', 10);",
+                  "const retryCount = parseInt(pm.collectionVariables.get('retry_' + varKey) || '0', 10);",
+                  "const maxRetries = 25;",
+                  "",
+                  "if (notFound && retryCount < maxRetries) {",
+                  "    pm.collectionVariables.set('retry_' + varKey, retryCount + 1);",
+                  "    pm.collectionVariables.set(varKey, String(currentId + 1));",
+                  "    console.log(`[Auto-Iterate] ${varKey}=${currentId} not found (404). Trying ID ${currentId + 1}...`);",
+                  "    postman.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "    pm.collectionVariables.set('retry_' + varKey, 0);",
+                  "    if (!notFound && resCode >= 200 && resCode < 300) {",
+                  "        console.log(`[Success] Verified valid ${varKey}=${currentId}`);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/medical-records/{{medical_record_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "medical-records",
+                "{{medical_record_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Medical Record (with Prescriptions)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.status === 'true' && json.data && json.data.id) {",
+                  "    pm.collectionVariables.set('medical_record_id', String(json.data.id));",
+                  "    console.log('[Record Created] Saved new medical_record_id:', json.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id\": {{patient_id}},\n  \"doctor_id\": {{doctor_id}},\n  \"appointment_id\": {{appointment_id}},\n  \"visit_date\": \"2026-08-02T14:30:00.000Z\",\n  \"keluhan_awal\": \"Demam tinggi 38.5C dan batuk\",\n  \"tekanan_darah\": \"120/80\",\n  \"suhu_tubuh\": 38.5,\n  \"berat_badan\": 65.0,\n  \"diagnosa\": \"Infeksi Saluran Pernapasan Akut (ISPA)\",\n  \"rencana_terapi\": \"Istirahat cukup, hidrasi, dan minum obat teratur\",\n  \"tindakan_medis\": \"Pemeriksaan fisik umum dan auskultasi paru\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/medical-records",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "medical-records"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Medical Record",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Auto-iteration & retry on 404",
+                  "const resCode = pm.response.code;",
+                  "let notFound = resCode === 404;",
+                  "const varKey = 'medical_record_id';",
+                  "const currentId = parseInt(pm.collectionVariables.get(varKey) || '1', 10);",
+                  "const retryCount = parseInt(pm.collectionVariables.get('retry_' + varKey) || '0', 10);",
+                  "if (notFound && retryCount < 25) {",
+                  "    pm.collectionVariables.set('retry_' + varKey, retryCount + 1);",
+                  "    pm.collectionVariables.set(varKey, String(currentId + 1));",
+                  "    postman.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "    pm.collectionVariables.set('retry_' + varKey, 0);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"keluhan_awal\": \"Demam turun, tinggal batuk ringan\",\n  \"tekanan_darah\": \"120/80\",\n  \"suhu_tubuh\": 37.0,\n  \"berat_badan\": 65.0,\n  \"diagnosa\": \"ISPA (Perbaikan)\",\n  \"rencana_terapi\": \"Lanjutkan obat hingga habis\",\n  \"tindakan_medis\": \"Evaluasi tanda vital\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/medical-records/{{medical_record_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "medical-records",
+                "{{medical_record_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Medical Record",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/medical-records/{{medical_record_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "medical-records",
+                "{{medical_record_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{doctor_token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Ensure Doctor token is set",
+              "if (!pm.collectionVariables.get('doctor_token')) {",
+              "    pm.sendRequest({",
+              "        url: pm.collectionVariables.get('baseUrl') + '/login',",
+              "        method: 'POST',",
+              "        header: { 'Content-Type': 'application/json' },",
+              "        body: { mode: 'raw', raw: JSON.stringify({ username: 'budi', password: 'password123' }) }",
+              "    }, function (err, res) {",
+              "        if (!err && res.code === 200) {",
+              "            const data = res.json().data;",
+              "            pm.collectionVariables.set('doctor_token', data.token);",
+              "            pm.collectionVariables.set('token', data.token);",
+              "            if (data.user && data.user.doctor_id) pm.collectionVariables.set('doctor_id', String(data.user.doctor_id));",
+              "        }",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Prescriptions",
+      "item": [
+        {
+          "name": "Create Prescriptions (Multi-item)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.status === 'true' && json.data) {",
+                  "    const created = Array.isArray(json.data) ? json.data[0] : json.data;",
+                  "    if (created && created.id) {",
+                  "        pm.collectionVariables.set('prescription_id', String(created.id));",
+                  "        console.log('[Prescription Created] Saved new prescription_id:', created.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medical_record_id\": {{medical_record_id}},\n  \"prescriptions\": [\n    {\n      \"obat\": \"Paracetamol 500mg\",\n      \"dosis\": \"3x1 tablet per hari\",\n      \"instruksi\": \"Diminum sesudah makan bila demam\"\n    },\n    {\n      \"obat\": \"Amoxicillin 500mg\",\n      \"dosis\": \"3x1 kapsul per hari\",\n      \"instruksi\": \"Diminum teratur sesudah makan sampai habis\"\n    },\n    {\n      \"obat\": \"Vitamin C 500mg\",\n      \"dosis\": \"1x1 tablet per hari\",\n      \"instruksi\": \"Diminum pagi hari\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/prescriptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "prescriptions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Prescription by ID (With Auto-ID Iteration)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Auto-iteration & retry on 404",
+                  "const resCode = pm.response.code;",
+                  "let notFound = resCode === 404;",
+                  "const varKey = 'prescription_id';",
+                  "const currentId = parseInt(pm.collectionVariables.get(varKey) || '1', 10);",
+                  "const retryCount = parseInt(pm.collectionVariables.get('retry_' + varKey) || '0', 10);",
+                  "const maxRetries = 25;",
+                  "",
+                  "if (notFound && retryCount < maxRetries) {",
+                  "    pm.collectionVariables.set('retry_' + varKey, retryCount + 1);",
+                  "    pm.collectionVariables.set(varKey, String(currentId + 1));",
+                  "    console.log(`[Auto-Iterate] ${varKey}=${currentId} not found (404). Trying ID ${currentId + 1}...`);",
+                  "    postman.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "    pm.collectionVariables.set('retry_' + varKey, 0);",
+                  "    if (!notFound && resCode >= 200 && resCode < 300) {",
+                  "        console.log(`[Success] Verified valid ${varKey}=${currentId}`);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/prescriptions/{{prescription_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "prescriptions",
+                "{{prescription_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{doctor_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "7. Admin User Management",
+      "item": [
+        {
+          "name": "Get All Users (Auto-Captures Valid user_id)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.status === 'true' && Array.isArray(json.data) && json.data.length > 0) {",
+                  "    // Pick first non-admin user (or any other user) for testing modifications",
+                  "    const targetUser = json.data.find(u => u.username !== 'admin') || json.data[0];",
+                  "    pm.collectionVariables.set('user_id', String(targetUser.id));",
+                  "    console.log('[Auto-Discovery] Found valid user_id:', targetUser.id, '(' + targetUser.username + ')');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID (With Auto-ID Iteration)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Auto-iteration & retry on 404",
+                  "const resCode = pm.response.code;",
+                  "let notFound = resCode === 404;",
+                  "const varKey = 'user_id';",
+                  "const currentId = parseInt(pm.collectionVariables.get(varKey) || '1', 10);",
+                  "const retryCount = parseInt(pm.collectionVariables.get('retry_' + varKey) || '0', 10);",
+                  "const maxRetries = 25;",
+                  "",
+                  "if (notFound && retryCount < maxRetries) {",
+                  "    pm.collectionVariables.set('retry_' + varKey, retryCount + 1);",
+                  "    pm.collectionVariables.set(varKey, String(currentId + 1));",
+                  "    console.log(`[Auto-Iterate] ${varKey}=${currentId} not found (404). Trying ID ${currentId + 1}...`);",
+                  "    postman.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "    pm.collectionVariables.set('retry_' + varKey, 0);",
+                  "    if (!notFound && resCode >= 200 && resCode < 300) {",
+                  "        console.log(`[Success] Verified valid ${varKey}=${currentId}`);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{user_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create User",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const rand = Math.floor(1000 + Math.random() * 9000);",
+                  "pm.variables.set('temp_user', 'doctor_' + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.status === 'true' && json.data && json.data.id) {",
+                  "    pm.collectionVariables.set('user_id', String(json.data.id));",
+                  "    console.log('[User Created] Saved new user_id:', json.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{temp_user}}\",\n  \"password\": \"password123\",\n  \"role\": \"Doctor\",\n  \"doctorName\": \"Dr. Rian Pratama, Sp.THT\",\n  \"spesialis\": \"Telinga Hidung Tenggorokan\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User (CRUD)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"updated_user_{{$randomInt}}\",\n  \"password\": \"newpassword123\",\n  \"role\": \"Registrator\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{user_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"Registrator\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{user_id}}/role",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}",
+                "role"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle / Disable User Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{user_id}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{user_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{admin_token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Ensure Admin token is set",
+              "if (!pm.collectionVariables.get('admin_token')) {",
+              "    pm.sendRequest({",
+              "        url: pm.collectionVariables.get('baseUrl') + '/login',",
+              "        method: 'POST',",
+              "        header: { 'Content-Type': 'application/json' },",
+              "        body: { mode: 'raw', raw: JSON.stringify({ username: 'admin', password: 'password123' }) }",
+              "    }, function (err, res) {",
+              "        if (!err && res.code === 200) {",
+              "            const data = res.json().data;",
+              "            pm.collectionVariables.set('admin_token', data.token);",
+              "            pm.collectionVariables.set('token', data.token);",
+              "        }",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Health Check",
+      "item": [
+        {
+          "name": "Service Health Check",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "admin_token",
+      "value": ""
+    },
+    {
+      "key": "doctor_token",
+      "value": ""
+    },
+    {
+      "key": "registrator_token",
+      "value": ""
+    },
+    {
+      "key": "patient_id",
+      "value": "1"
+    },
+    {
+      "key": "doctor_id",
+      "value": "1"
+    },
+    {
+      "key": "appointment_id",
+      "value": "2"
+    },
+    {
+      "key": "medical_record_id",
+      "value": "2"
+    },
+    {
+      "key": "prescription_id",
+      "value": "1"
+    },
+    {
+      "key": "user_id",
+      "value": "3"
+    },
+    {
+      "key": "retry_patient_id",
+      "value": ""
+    },
+    {
+      "key": "retry_appointment_id",
+      "value": ""
+    },
+    {
+      "key": "retry_medical_record_id",
+      "value": ""
+    },
+    {
+      "key": "retry_prescription_id",
+      "value": ""
+    },
+    {
+      "key": "retry_user_id",
+      "value": ""
+    }
+  ]
+}
