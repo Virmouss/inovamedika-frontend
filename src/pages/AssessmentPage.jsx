@@ -156,7 +156,7 @@ const AssessmentPage = () => {
             {/* Header */}
             <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
                 <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">Patient Assessment</h1>
-                <p className="text-slate-500 mt-2 font-medium">Today's active patients — select to begin assessment</p>
+                <p className="text-slate-500 mt-2 font-medium">Today's active patients select to begin assessment</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -403,7 +403,7 @@ const AssessmentPage = () => {
                                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                                     <span>Resep Obat</span>
                                     <span className="text-slate-400 font-normal normal-case text-xs tracking-normal">
-                                        (Opsional — kosongkan jika tidak ada resep)
+                                        (Opsional, kosongkan jika tidak ada resep)
                                     </span>
                                 </h4>
                                 <button

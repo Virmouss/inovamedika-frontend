@@ -8,7 +8,7 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    
+
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
 
@@ -18,7 +18,7 @@ const LoginPage = () => {
         setLoading(true);
         try {
             await login(username, password);
-            navigate('/dashboard'); 
+            navigate('/dashboard');
         } catch (err) {
             setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
         } finally {
@@ -77,7 +77,7 @@ const LoginPage = () => {
                                 required
                             />
                         </div>
-                        
+
                         <button
                             type="submit"
                             disabled={loading}
@@ -98,7 +98,7 @@ const LoginPage = () => {
                     </form>
                 </div>
                 <div className="text-center mt-8 text-slate-400 text-sm font-medium">
-                    &copy; 2026 InovaMedika Solutions
+                    &copy; Izzan Alfadhil
                 </div>
             </div>
         </div>
