@@ -17,12 +17,12 @@ const MedicalRecordsPage = () => {
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
 
-    const fetchRecords = useCallback(async (currentPage = 1) => {
+    const fetchRecords = useCallback(async (currentPage = page, query = search) => {
         setLoading(true);
         try {
-            const res = await axios.get(`${API_BASE}/medical-records`, {
-                params: { page: currentPage, limit: PAGE_SIZE }
-            });
+            const params = { page: currentPage, limit: PAGE_SIZE };
+            if (query) params.search = query;
+            const res = await axios.get(`${API_BASE}/medical-records`, { params });
             setRecords(res.data.data);
             if (res.data.pagination) {
                 setPagination(res.data.pagination);
@@ -32,16 +32,20 @@ const MedicalRecordsPage = () => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, []); // eslint-disable-line
 
-    useEffect(() => { fetchRecords(page); }, [page, fetchRecords]);
+    useEffect(() => {
+        fetchRecords(page, search);
+    }, [page]); // eslint-disable-line
 
-    // Client-side search filter within the current page
-    const filtered = records.filter(r =>
-        r.patient_name?.toLowerCase().includes(search.toLowerCase()) ||
-        r.diagnosa?.toLowerCase().includes(search.toLowerCase()) ||
-        r.doctor_name?.toLowerCase().includes(search.toLowerCase())
-    );
+    // Debounce search — reset to page 1 on new query
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setPage(1);
+            fetchRecords(1, search);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [search]); // eslint-disable-line
 
     return (
         <div className="animate-fade-in space-y-8">
@@ -71,7 +75,7 @@ const MedicalRecordsPage = () => {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-clinic-500 transition-colors" size={16} />
                         <input
                             type="text"
-                            placeholder="Filter this page by patient, doctor, or diagnosis..."
+                            placeholder="Search records by patient, NIK, doctor, or diagnosis..."
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             className="pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 outline-none w-full md:w-96 transition-all"
@@ -97,7 +101,7 @@ const MedicalRecordsPage = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100/60">
-                                    {filtered.map(record => (
+                                    {records.map(record => (
                                         <tr key={record.id} className="hover:bg-slate-50/50 transition-colors group">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center space-x-3">
@@ -142,10 +146,12 @@ const MedicalRecordsPage = () => {
                                     ))}
                                 </tbody>
                             </table>
-                            {filtered.length === 0 && (
+                            {records.length === 0 && (
                                 <div className="p-16 text-center flex flex-col items-center text-slate-400 space-y-3">
                                     <FileText size={32} className="text-slate-300" />
-                                    <p className="font-semibold text-slate-500">No records found</p>
+                                    <p className="font-semibold text-slate-500">
+                                        {search ? `No records matching "${search}"` : 'No records found'}
+                                    </p>
                                 </div>
                             )}
                         </div>

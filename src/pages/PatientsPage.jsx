@@ -188,31 +188,31 @@ const PatientsPage = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div className="space-y-1">
                                     <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">NIK Number</label>
-                                    <input type="text" required value={formData.nik} onChange={e => setFormData({...formData, nik: e.target.value})} className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all duration-300 outline-none text-slate-700 font-medium placeholder:font-normal" placeholder="e.g. 317123..." />
+                                    <input type="text" required value={formData.nik} onChange={e => setFormData({ ...formData, nik: e.target.value })} className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all duration-300 outline-none text-slate-700 font-medium placeholder:font-normal" placeholder="e.g. 317123..." />
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">Full Name</label>
-                                    <input type="text" required value={formData.nama} onChange={e => setFormData({...formData, nama: e.target.value})} className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all duration-300 outline-none text-slate-700 font-medium placeholder:font-normal" placeholder="John Doe" />
+                                    <input type="text" required value={formData.nama} onChange={e => setFormData({ ...formData, nama: e.target.value })} className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all duration-300 outline-none text-slate-700 font-medium placeholder:font-normal" placeholder="John Doe" />
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">Gender</label>
-                                    <select value={formData.kelamin} onChange={e => setFormData({...formData, kelamin: e.target.value})} className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all duration-300 outline-none text-slate-700 font-medium appearance-none cursor-pointer">
+                                    <select value={formData.kelamin} onChange={e => setFormData({ ...formData, kelamin: e.target.value })} className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all duration-300 outline-none text-slate-700 font-medium appearance-none cursor-pointer">
                                         <option value="Laki-laki">Laki-laki (Male)</option>
                                         <option value="Perempuan">Perempuan (Female)</option>
                                     </select>
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">Date of Birth</label>
-                                    <input type="date" required value={formData.tanggal_lahir} onChange={e => setFormData({...formData, tanggal_lahir: e.target.value})} className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all duration-300 outline-none text-slate-700 font-medium" />
+                                    <input type="date" required value={formData.tanggal_lahir} onChange={e => setFormData({ ...formData, tanggal_lahir: e.target.value })} className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all duration-300 outline-none text-slate-700 font-medium" />
                                 </div>
                             </div>
                             <div className="space-y-1">
                                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">Phone Number</label>
-                                <input type="text" value={formData.nomor_telepon} onChange={e => setFormData({...formData, nomor_telepon: e.target.value})} className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all duration-300 outline-none text-slate-700 font-medium placeholder:font-normal" placeholder="e.g. +62812..." />
+                                <input type="text" required value={formData.nomor_telepon} onChange={e => setFormData({ ...formData, nomor_telepon: e.target.value })} className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all duration-300 outline-none text-slate-700 font-medium placeholder:font-normal" placeholder="e.g. +62812..." />
                             </div>
                             <div className="space-y-1">
                                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">Residential Address</label>
-                                <textarea rows="3" value={formData.alamat} onChange={e => setFormData({...formData, alamat: e.target.value})} className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all duration-300 outline-none text-slate-700 font-medium placeholder:font-normal resize-none" placeholder="Enter full address..."></textarea>
+                                <textarea rows="3" value={formData.alamat} onChange={e => setFormData({ ...formData, alamat: e.target.value })} className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:border-clinic-400 focus:ring-4 focus:ring-clinic-400/10 focus:bg-white transition-all duration-300 outline-none text-slate-700 font-medium placeholder:font-normal resize-none" placeholder="Enter full address..."></textarea>
                             </div>
                             <div className="flex justify-end space-x-3 mt-8 pt-6 border-t border-slate-100">
                                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-3 font-semibold tracking-wide text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">Cancel</button>

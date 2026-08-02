@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { CalendarClock, Plus, Search, Edit2, Trash2, Activity, X } from 'lucide-react';
 import Pagination from '../components/Pagination';
@@ -44,10 +44,11 @@ const AppointmentsPage = () => {
     const [showPatientDropdown, setShowPatientDropdown] = useState(false);
 
     // ---------- Data fetching ----------
-    const fetchAppointments = async (currentPage = page) => {
+    const fetchAppointments = useCallback(async (currentPage = page, query = searchTerm, date = filterDate) => {
         try {
-            const params = { page: currentPage, limit: 10 };
-            if (filterDate) params.date = filterDate;
+            const params = { page: currentPage, limit: PAGE_SIZE };
+            if (date) params.date = date;
+            if (query) params.search = query;
             const res = await axios.get(`${API_BASE}/registrations`, { params });
             setAppointments(res.data.data);
             if (res.data.pagination) setPagination(res.data.pagination);
@@ -56,7 +57,7 @@ const AppointmentsPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filterDate]); // eslint-disable-line
 
     const fetchPatients = async (query = '') => {
         try {
@@ -88,13 +89,16 @@ const AppointmentsPage = () => {
     }, [patientSearch]);
 
     useEffect(() => {
-        setPage(1);
-        fetchAppointments(1);
-    }, [filterDate]); // eslint-disable-line
+        fetchAppointments(page, searchTerm, filterDate);
+    }, [page]); // eslint-disable-line
 
     useEffect(() => {
-        fetchAppointments(page);
-    }, [page]); // eslint-disable-line
+        const timer = setTimeout(() => {
+            setPage(1);
+            fetchAppointments(1, searchTerm, filterDate);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchTerm, filterDate]); // eslint-disable-line
 
     // ---------- Handlers ----------
     const openAddModal = () => {
@@ -147,17 +151,7 @@ const AppointmentsPage = () => {
         }
     };
 
-    // ---------- Filtered data ----------
-    const filtered = appointments.filter((a) => {
-        if (!searchTerm) return true;
-        const term = searchTerm.toLowerCase();
-        return (
-            a.patient_name?.toLowerCase().includes(term) ||
-            a.patient_nik?.toLowerCase().includes(term) ||
-            a.doctor_name?.toLowerCase().includes(term) ||
-            a.poli?.toLowerCase().includes(term)
-        );
-    });
+
 
     // ---------- Render ----------
     if (loading) {
@@ -242,7 +236,7 @@ const AppointmentsPage = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100/60">
-                            {filtered.map((appt) => (
+                            {appointments.map((appt) => (
                                 <tr key={appt.id} className="hover:bg-slate-50/50 transition-colors group">
                                     <td className="px-6 py-5">
                                         <div className="flex items-center space-x-3">
@@ -296,14 +290,18 @@ const AppointmentsPage = () => {
                             ))}
                         </tbody>
                     </table>
-                    {filtered.length === 0 && (
+                    {appointments.length === 0 && (
                         <div className="p-16 text-center flex flex-col items-center text-slate-400 space-y-4">
                             <div className="bg-slate-50 p-4 rounded-full border border-slate-100">
                                 <CalendarClock size={32} className="text-slate-300" />
                             </div>
                             <div>
-                                <p className="font-semibold text-slate-600">No appointments found</p>
-                                <p className="text-sm mt-1">Create a new appointment to get started.</p>
+                                <p className="font-semibold text-slate-600">
+                                    {searchTerm ? `No appointments matching "${searchTerm}"` : 'No appointments found'}
+                                </p>
+                                <p className="text-sm mt-1">
+                                    {searchTerm ? 'Try searching with a different keyword or clearing filters.' : 'Create a new appointment to get started.'}
+                                </p>
                             </div>
                         </div>
                     )}
